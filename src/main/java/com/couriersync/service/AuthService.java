@@ -41,4 +41,11 @@ public class AuthService {
     public Usuario findByCedula(String cedula) {
         return usuarioRepository.findByCedula(cedula);
     }
+    public Usuario findByUsuario(String usuario) {
+        return usuarioRepository.findByUsuario(usuario);
+    }
+
+    public Usuario saveUsuario(Usuario usuario) {
+        return usuarioRepository.save(usuario);
+    }
 }

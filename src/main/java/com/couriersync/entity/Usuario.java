@@ -36,8 +36,7 @@ public class Usuario {
     @Column(name = "rol", nullable = false)
     private int rol;
 
-    @Column(name = "mfa_estado", nullable = false)
-    private boolean mfaEnabled; // ¿El usuario tiene MFA activo? 
+    @Column(name = "mfa_active", nullable = false) private boolean mfaEnabled; // ¿El usuario tiene MFA activo?
     
     @Column(name = "mfa_secreto", length = 128)
     @JsonIgnore

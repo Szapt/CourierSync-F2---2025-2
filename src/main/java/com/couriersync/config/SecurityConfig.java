@@ -13,16 +13,17 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable()) // depende de tu caso, solo si no usas CSRF tokens
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/signup").permitAll()
+                .requestMatchers("/login", "/signup", "/user", "/register", "/logout").permitAll()
                 .requestMatchers(
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
-                    "/swagger-ui.html"
+                    "/swagger-ui.html",
+                    "/api/mfa/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
             .logout(logout -> logout
-                .logoutUrl("/logout")      // solo responde a POST /logout
+                .logoutUrl("/spring-logout")      // cambiar URL para evitar conflicto
                 .logoutSuccessUrl("/login?logout") // redirección opcional
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")

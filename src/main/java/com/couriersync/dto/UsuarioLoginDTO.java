@@ -15,5 +15,6 @@ public class UsuarioLoginDTO {
 
     @NotNull(message = "El rol es obligatorio")
     private Integer rol;
+
     // Getters y Setters generados por Lombok
 }

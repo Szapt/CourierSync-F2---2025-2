@@ -9,15 +9,13 @@ import com.couriersync.entity.Usuario;
 import com.couriersync.repository.UsuarioRepository;
 import com.couriersync.service.AuthService;
 import com.couriersync.service.SignUpService;
+import com.couriersync.service.JwtService;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import jakarta.servlet.http.Cookie;
 
 import com.couriersync.dto.UsuarioLoginDTO;
 import com.couriersync.dto.UsuarioRegistroDTO;
+import java.util.Map;
 
 
 @RestController
@@ -25,11 +23,13 @@ import com.couriersync.dto.UsuarioRegistroDTO;
 public class AuthController {
     private final AuthService authService;
     private final SignUpService signUpService;
+    private final JwtService jwtService;
 
     @Autowired
-    public AuthController(AuthService authService, UsuarioRepository usuarioRepository, SignUpService signUpService) {
+    public AuthController(AuthService authService, UsuarioRepository usuarioRepository, SignUpService signUpService, JwtService jwtService) {
         this.authService = authService;
         this.signUpService = signUpService;
+        this.jwtService = jwtService;
     }
 
     @GetMapping("/user")
@@ -38,22 +38,41 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@Valid @RequestBody UsuarioLoginDTO usuarioLoginDTO ,
-        HttpServletRequest request) {
-        boolean success = authService.authenticate( usuarioLoginDTO.getUsername(),
+    public ResponseEntity<?> login(@Valid @RequestBody UsuarioLoginDTO usuarioLoginDTO) {
+        boolean success = authService.authenticate(usuarioLoginDTO.getUsername(),
             usuarioLoginDTO.getContraseña(),
             usuarioLoginDTO.getRol());
        
-         if (!success) {
+        if (!success) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
 
-        // Crear o recuperar la sesión y guardar info del usuario
-        HttpSession session = request.getSession(true); // crea sesión si no existe
-        session.setAttribute("Username", usuarioLoginDTO.getUsername());
-        session.setAttribute("rol", usuarioLoginDTO.getRol());
-        session.setMaxInactiveInterval(30 * 60); // 30 minutos
-        return ResponseEntity.ok("Login successful");
+        // Obtener información del usuario
+        Usuario usuario = authService.findByUsuario(usuarioLoginDTO.getUsername());
+    
+        System.out.println("Usuario: " + usuario);
+        // Verificar si el usuario tiene MFA habilitado
+        if (usuario.isMfaEnabled()) {
+            return ResponseEntity.ok(Map.of(
+                "message", "Se requiere verificación MFA",
+                "requiresMfa", true,
+                "cedula", usuario.getCedula()
+            ));
+        }
+
+        // Generar JWT token
+        String token = jwtService.generateToken(
+            usuario.getCedula(),
+            usuario.getUsuario(),
+            usuario.getRol()
+        );
+
+        return ResponseEntity.ok(Map.of(
+            "token", token,
+            "message", "Login exitoso",
+            "cedula", usuario.getCedula(),
+            "rol", usuario.getRol()
+        ));
     }
 
     @PostMapping("/register")
@@ -63,19 +82,32 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
-        HttpSession session = request.getSession(false); // no crear si no existe
-        if (session != null) {
-            session.invalidate();
+    public ResponseEntity<?> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                               .body("Token de autorización requerido");
         }
 
-        // Elimina cookie JSESSIONID del cliente (sirve para limpiar en algunos navegadores/clients)
-        Cookie cookie = new Cookie("JSESSIONID", "");
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        // cookie.setHttpOnly(true); // opcional
-        response.addCookie(cookie);
+        try {
+            String token = authHeader.substring(7); // Remover "Bearer "
+            
+            // Validar el token
+            String cedula = jwtService.extractCedula(token);
+            if (!jwtService.validateToken(token, cedula)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                                   .body("Token inválido");
+            }
 
-        return ResponseEntity.ok("Sesión cerrada exitosamente");
+            // En un sistema más robusto, aquí agregarías el token a una blacklist
+            // Por ahora, simplemente confirmamos que el logout fue exitoso
+            return ResponseEntity.ok(Map.of(
+                "message", "Logout exitoso",
+                "cedula", cedula
+            ));
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                               .body("Token inválido o expirado");
+        }
     }
 }

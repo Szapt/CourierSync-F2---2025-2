@@ -13,7 +13,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable()) // depende de tu caso, solo si no usas CSRF tokens
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/signup", "/user", "/register", "/logout").permitAll()
+                .requestMatchers("/login", "/signup", "/user", "/register", "/logout", "/api/routes/create-route").permitAll()
                 .requestMatchers(
                     "/v3/api-docs/**",
                     "/swagger-ui/**",

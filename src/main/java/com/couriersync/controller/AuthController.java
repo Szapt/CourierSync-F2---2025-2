@@ -1,21 +1,29 @@
 package com.couriersync.controller;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import com.couriersync.entity.Usuario;
-import com.couriersync.repository.UsuarioRepository;
-import com.couriersync.service.AuthService;
-import com.couriersync.service.SignUpService;
-import com.couriersync.service.JwtService;
-
-import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.couriersync.dto.UsuarioLoginDTO;
 import com.couriersync.dto.UsuarioRegistroDTO;
-import java.util.Map;
+import com.couriersync.entity.Usuario;
+import com.couriersync.repository.UsuarioRepository;
+import com.couriersync.service.AuthService;
+import com.couriersync.service.JwtService;
+import com.couriersync.service.SignUpService;
+
+import jakarta.validation.Valid;
 
 
 @RestController
@@ -77,8 +85,20 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<String> registrarUsuario(@Valid @RequestBody UsuarioRegistroDTO usuarioDTO) {
-        signUpService.registrarUsuario(usuarioDTO);
-        return ResponseEntity.ok("Usuario creado con éxito");
+        try {
+            signUpService.registrarUsuario(usuarioDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Usuario creado con éxito");
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error: datos duplicados o inválidos");
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .body("Error inesperado. Intente más tarde.");
+        }
     }
 
     @PostMapping("/logout")

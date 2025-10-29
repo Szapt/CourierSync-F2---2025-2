@@ -1,7 +1,7 @@
 package com.couriersync.service;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import com.couriersync.entity.Usuario;
 import com.couriersync.repository.UsuarioRepository;

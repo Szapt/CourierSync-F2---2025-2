@@ -13,7 +13,7 @@ import com.couriersync.route_optimizer.entity.Ruta;
 import com.couriersync.route_optimizer.service.RutaService;
 
 @RestController
-@RequestMapping("api/routes/create-route")
+@RequestMapping("/routes/create-route")
 public class RutaController {
 
     @Autowired

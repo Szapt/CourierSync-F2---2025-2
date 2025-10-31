@@ -29,7 +29,7 @@ public class SecurityConfig {
                     "/signup",
                     "/register",
                     "/logout",
-                    "/api/routes/create-route",
+                    "/routes/create-route",
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html"

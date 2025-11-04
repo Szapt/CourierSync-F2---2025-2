@@ -1,6 +1,5 @@
-package com.couriersync.security;
+package com.couriersync.users.security;
 
-import com.couriersync.service.JwtService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -13,6 +12,11 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.util.List;
+
+import com.couriersync.users.service.JwtService;
+import com.couriersync.users.service.RolService;
 
 import java.io.IOException;
 import java.util.Collections; 
@@ -22,6 +26,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtService jwtService;
+
+    @Autowired
+    private RolService rolService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -52,12 +59,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (cedula != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            User userDetails = new User(cedula, "", Collections.emptyList());
+        
+            Integer rolId = jwtService.extractRol(jwt);
+            String roleString = rolService.obtenerNombreRolPorId(rolId);
+
+            
+            List<SimpleGrantedAuthority> authorities = Collections.singletonList(
+                new SimpleGrantedAuthority(roleString)
+            );
+            User userDetails = new User(cedula, "", authorities);
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
-                            userDetails.getAuthorities()
+                            authorities
                     );
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
@@ -66,4 +81,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
 }

@@ -1,4 +1,4 @@
-package com.couriersync.dto;
+package com.couriersync.users.dto;
 
 import lombok.Data;
 

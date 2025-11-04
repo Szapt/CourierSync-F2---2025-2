@@ -1,11 +1,12 @@
-package com.couriersync.service;
+package com.couriersync.users.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.couriersync.dto.UsuarioRegistroDTO;
-import com.couriersync.entity.Usuario;
-import com.couriersync.repository.UsuarioRepository;
+import com.couriersync.users.dto.UsuarioRegistroDTO;
+import com.couriersync.users.entity.Usuario;
+import com.couriersync.users.repository.UsuarioRepository;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Service

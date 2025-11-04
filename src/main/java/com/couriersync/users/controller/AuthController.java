@@ -1,4 +1,4 @@
-package com.couriersync.controller;
+package com.couriersync.users.controller;
 
 import java.util.Map;
 
@@ -15,13 +15,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.couriersync.dto.UsuarioLoginDTO;
-import com.couriersync.dto.UsuarioRegistroDTO;
-import com.couriersync.entity.Usuario;
-import com.couriersync.repository.UsuarioRepository;
-import com.couriersync.service.AuthService;
-import com.couriersync.service.JwtService;
-import com.couriersync.service.SignUpService;
+import com.couriersync.users.dto.UsuarioLoginDTO;
+import com.couriersync.users.dto.UsuarioRegistroDTO;
+import com.couriersync.users.entity.Usuario;
+import com.couriersync.users.repository.UsuarioRepository;
+import com.couriersync.users.service.AuthService;
+import com.couriersync.users.service.JwtService;
+import com.couriersync.users.service.SignUpService;
 
 import jakarta.validation.Valid;
 

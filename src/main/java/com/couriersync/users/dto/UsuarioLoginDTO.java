@@ -1,4 +1,4 @@
-package com.couriersync.dto;
+package com.couriersync.users.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

@@ -1,11 +1,17 @@
 package com.couriersync.route_optimizer.controller;
 
 import com.couriersync.route_optimizer.entity.Ruta;
+import com.couriersync.route_optimizer.entity.TipoTrafico;
+import com.couriersync.route_optimizer.entity.EstadoRuta;
 import com.couriersync.route_optimizer.service.RutaService;
+
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -17,6 +23,7 @@ public class RutaController {
     private RutaService rutaService;
 
     // Crear una nueva ruta
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/create")
     public ResponseEntity<?> crearRuta(@RequestBody Ruta ruta) {
         try {
@@ -33,6 +40,7 @@ public class RutaController {
     }
 
     // Editar una ruta existente
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GESTORRUTA')")
     @PutMapping("/update/{id}")
     public ResponseEntity<?> actualizarRuta(@PathVariable("id") Integer idRuta, @RequestBody Ruta rutaActualizada) {
         try {
@@ -59,5 +67,56 @@ public class RutaController {
                     .body("Error inesperado. Intente más tarde.");
         }
     }
+
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GESTORRUTA') or hasRole('AUDITOR')")
+    @GetMapping("/get/all")
+    public List<Ruta> obtenerTodasLasRutas() {
+        return rutaService.obtenerTodasLasRutas();
+    }
+
+    // Obtener todos los estados disponibles
+    @GetMapping("/estados")
+    public ResponseEntity<List<EstadoRuta>> obtenerTodosLosEstados() {
+        List<EstadoRuta> estados = rutaService.obtenerTodosLosEstados();
+        return ResponseEntity.ok(estados);
+    }
+
+    // Buscar rutas por nombre de estado
+    @GetMapping("/by-estado")
+    public ResponseEntity<?> buscarRutasPorEstado(@RequestParam("estado") String nombreEstado) {
+        try {
+            List<Ruta> rutas = rutaService.buscarRutasPorNombreEstado(nombreEstado);
+            return ResponseEntity.ok(rutas);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error inesperado. Intente más tarde.");
+        }
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GESTORRUTA') or hasRole('AUDITOR')")
+    @GetMapping("/trafico/{nivelTrafico}")
+    public ResponseEntity<?> buscarRutasPorTrafico(@PathVariable("nivelTrafico") String nivelTrafico) {
+        try {
+            List<Ruta> rutas = rutaService.buscarRutasPorTrafico(nivelTrafico);
+            return ResponseEntity.ok(rutas);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error inesperado. Intente más tarde.");
+        }
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GESTORRUTA') or hasRole('AUDITOR')")
+    @GetMapping("/trafico/all")
+    public ResponseEntity<?> obtenerRutasPorTraficoAsc() {
+        List<Ruta> rutas = rutaService.obtenerRutasPorTraficoAsc();
+        return ResponseEntity.ok(rutas);
+    }
+
+
+
 }
 

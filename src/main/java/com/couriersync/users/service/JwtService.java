@@ -1,4 +1,4 @@
-package com.couriersync.service;
+package com.couriersync.users.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

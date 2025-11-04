@@ -1,8 +1,8 @@
-package com.couriersync.repository;
+package com.couriersync.users.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.couriersync.entity.Usuario;
+import com.couriersync.users.entity.Usuario;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, String> {   
     Usuario findByCedula(String cedula);

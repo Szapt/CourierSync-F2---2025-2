@@ -5,9 +5,14 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.couriersync.route_optimizer.entity.Ruta;
+import com.couriersync.route_optimizer.entity.TipoTrafico;
+import com.couriersync.route_optimizer.entity.EstadoRuta;
 import com.couriersync.route_optimizer.repository.RutaRepository;
+import com.couriersync.route_optimizer.repository.EstadoRutaRepository;
+import com.couriersync.route_optimizer.repository.TipoTraficoRepository;
 
 import java.util.Optional;
+import java.util.List;
 
 @Service
 public class RutaService {
@@ -15,6 +20,11 @@ public class RutaService {
     @Autowired
     private RutaRepository rutaRepository;
 
+    @Autowired
+    private EstadoRutaRepository estadoRutaRepository;
+
+    @Autowired
+    private TipoTraficoRepository tipoTraficoRepository;
     // Crear nueva ruta
     public Ruta crearRuta(Ruta ruta) {
         if (ruta.getIdRuta() != null && rutaRepository.existsById(ruta.getIdRuta())) {
@@ -74,5 +84,38 @@ public class RutaService {
         }
         rutaRepository.deleteById(idRuta);
     }
+
+    public List<Ruta> obtenerTodasLasRutas() {
+        return rutaRepository.findAll();
+    }
+
+    // Buscar rutas por nombre de estado
+    public List<Ruta> buscarRutasPorNombreEstado(String nombreEstado) {
+        EstadoRuta estado = estadoRutaRepository.findByNombreEstado(nombreEstado);
+        if (estado == null) {
+            throw new IllegalArgumentException("Estado no encontrado: " + nombreEstado);
+        }
+        Integer idEstado = estado.getIdEstado();
+        return rutaRepository.findByIdEstado(idEstado);
+    }
+
+    public List<Ruta> buscarRutasPorTrafico(String nivelTrafico) {
+        TipoTrafico trafico = tipoTraficoRepository.findByNivelTrafico(nivelTrafico);
+        if (trafico == null) {
+            throw new IllegalArgumentException("Trafico no encontrado: " + nivelTrafico);
+        }
+        return rutaRepository.findByIdTrafico(trafico.getIdTrafico());
+    }
+
+    public List<Ruta> obtenerRutasPorTraficoAsc() {
+        return rutaRepository.findAllByTraficoAsc();
+    }
+    // Obtener todos los estados disponibles
+    public List<EstadoRuta> obtenerTodosLosEstados() {
+        return estadoRutaRepository.findAll();
+    }
+    
+    
+    
 }
 

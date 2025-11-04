@@ -1,4 +1,4 @@
-package com.couriersync.service;
+package com.couriersync.users.service;
 
 import dev.samstevens.totp.code.CodeVerifier;
 import dev.samstevens.totp.code.DefaultCodeVerifier;

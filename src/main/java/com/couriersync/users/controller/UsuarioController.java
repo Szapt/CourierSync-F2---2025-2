@@ -1,4 +1,4 @@
-package com.couriersync.controller;
+package com.couriersync.users.controller;
 
 import java.util.Map;
 
@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.couriersync.service.JwtService;
-import com.couriersync.service.UsuarioService;
+import com.couriersync.users.service.JwtService;
+import com.couriersync.users.service.UsuarioService;
 
 @RestController
 @RequestMapping("/users")

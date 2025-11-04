@@ -1,4 +1,4 @@
-package com.couriersync.controller;
+package com.couriersync.users.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -7,11 +7,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.couriersync.entity.Usuario;
-import com.couriersync.service.MfaService;
-import com.couriersync.service.AuthService;
-import com.couriersync.service.JwtService;
-import com.couriersync.dto.MfaRequest;
+
+import com.couriersync.users.dto.MfaRequest;
+import com.couriersync.users.entity.Usuario;
+import com.couriersync.users.service.AuthService;
+import com.couriersync.users.service.JwtService;
+import com.couriersync.users.service.MfaService;
+
 import java.util.Map;
 
 @RestController

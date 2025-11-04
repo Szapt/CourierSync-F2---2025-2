@@ -1,4 +1,4 @@
-package com.couriersync.entity;
+package com.couriersync.users.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 

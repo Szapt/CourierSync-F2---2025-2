@@ -13,6 +13,6 @@ public interface RutaRepository extends JpaRepository<Ruta, Integer> {
     List<Ruta> findByIdTrafico(Integer idTrafico);
     List<Ruta> findByPrioridad(Short prioridad);
     List<Ruta> findByIdEstado(Integer idEstado);
-    List<Ruta> findAllByTraficoAsc();
+    List<Ruta> findAllByOrderByIdTraficoAsc();
 }
 

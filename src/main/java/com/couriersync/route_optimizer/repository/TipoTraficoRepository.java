@@ -9,5 +9,5 @@ import com.couriersync.route_optimizer.entity.TipoTrafico;
 public interface TipoTraficoRepository extends JpaRepository<TipoTrafico, Integer> {
 
     TipoTrafico findByNivelTrafico(String nivelTrafico);
-    
+    List<TipoTrafico> findAllByOrderByNivelTraficoAsc();
 }

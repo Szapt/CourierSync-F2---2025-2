@@ -108,7 +108,7 @@ public class RutaService {
     }
 
     public List<Ruta> obtenerRutasPorTraficoAsc() {
-        return rutaRepository.findAllByTraficoAsc();
+        return rutaRepository.findAllByOrderByIdTraficoAsc();
     }
     // Obtener todos los estados disponibles
     public List<EstadoRuta> obtenerTodosLosEstados() {

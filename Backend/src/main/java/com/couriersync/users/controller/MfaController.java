@@ -100,55 +100,61 @@ public class MfaController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyMfa(@RequestBody MfaRequest request) {
+public ResponseEntity<?> verifyMfa(@RequestBody MfaRequest request) {
+    try {
+        Usuario usuario = authService.findByCedula(request.getCedula());
+        
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                 .body("Usuario no encontrado");
+        }
+
+        if (usuario.getMfaSecret() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                 .body("Usuario no tiene MFA configurado");
+        }
+
+        // Logging detallado del secret que se va a usar
+        System.out.println("=== SECRET RECUPERADO DE BD ===");
+        System.out.println("Secret completo: " + usuario.getMfaSecret());
+        System.out.println("Secret length: " + (usuario.getMfaSecret() != null ? usuario.getMfaSecret().length() : 0));
+        System.out.println("Secret bytes: " + java.util.Arrays.toString(usuario.getMfaSecret().getBytes()));
+        System.out.println("===============================");
+        
+        // Generar código de prueba para comparar
         try {
-            Usuario usuario = authService.findByCedula(request.getCedula());
-            
-            if (usuario == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                     .body("Usuario no encontrado");
-            }
-
-            if (usuario.getMfaSecret() == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                     .body("Usuario no tiene MFA configurado");
-            }
-
-            // Logging detallado del secret que se va a usar
-            System.out.println("=== SECRET RECUPERADO DE BD ===");
-            System.out.println("Secret completo: " + usuario.getMfaSecret());
-            System.out.println("Secret length: " + (usuario.getMfaSecret() != null ? usuario.getMfaSecret().length() : 0));
-            System.out.println("Secret bytes: " + java.util.Arrays.toString(usuario.getMfaSecret().getBytes()));
-            System.out.println("===============================");
-            
-            // Generar código de prueba para comparar
             String testCode = mfaService.generateTestCode(usuario.getMfaSecret());
             System.out.println("\n🔍 CÓDIGO QUE DEBERÍA SER AHORA: " + testCode);
             System.out.println("CÓDIGO QUE INGRESASTE: " + request.getCode());
             System.out.println("¿Coinciden? " + testCode.equals(request.getCode()));
             System.out.println("⚠️ Si NO coinciden, el secret en Authy es DIFERENTE al de la BD\n");
-
-            if (mfaService.verifyCode(usuario.getMfaSecret(), request.getCode())) {
-                // Generar JWT token real
-                String token = jwtService.generateToken(
-                    usuario.getCedula(),
-                    usuario.getUsuario(),
-                    usuario.getRol()
-                );
-                
-                return ResponseEntity.ok(Map.of(
-                    "token", token,
-                    "message", "MFA verificado exitosamente",
-                    "cedula", usuario.getCedula(),
-                    "rol", usuario.getRol()
-                ));
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                                     .body("Código TOTP inválido");
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .body("Error interno del servidor");
+        } catch (dev.samstevens.totp.exceptions.CodeGenerationException e) {
+            System.err.println("Error generando código de prueba: " + e.getMessage());
         }
+
+        if (mfaService.verifyCode(usuario.getMfaSecret(), request.getCode())) {
+            // Generar JWT token real
+            String token = jwtService.generateToken(
+                usuario.getCedula(),
+                usuario.getUsuario(),
+                usuario.getRol()
+            );
+            
+            return ResponseEntity.ok(Map.of(
+                "token", token,
+                "message", "MFA verificado exitosamente",
+                "cedula", usuario.getCedula(),
+                "rol", usuario.getRol()
+            ));
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                                 .body("Código TOTP inválido");
+        }
+    } catch (Exception e) {
+        System.err.println("Error en verificación MFA: " + e.getMessage());
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                             .body("Error interno del servidor");
+    }
     }
 }

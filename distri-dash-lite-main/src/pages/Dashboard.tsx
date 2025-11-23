@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Route, Users, BarChart3, Plus, Eye, Edit, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
+import { LayoutDashboard, Route, Users, BarChart3, Plus, Eye, Edit, Trash2, AlertTriangle, Loader2, Shield } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -13,6 +13,8 @@ import { esGestor, esAuditor, esConductor, esAdmin } from '@/utils/roleValidatio
 import { rutaService } from '@/services/rutaService';
 import { mapRutaBackendToFrontend } from '@/utils/backendMapper';
 import { useToast } from '@/hooks/use-toast';
+import { mfaService } from '@/services/mfaService';
+import { QRCodeSVG } from 'qrcode.react';
 
 const Dashboard = () => {
   const usuario = getUsuarioActivo();
@@ -25,9 +27,12 @@ const Dashboard = () => {
   // Estados para modales
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [openMfaModal, setOpenMfaModal] = useState(false);
   const [selectedRutaId, setSelectedRutaId] = useState('');
   const [rutaToUpdate, setRutaToUpdate] = useState<Ruta | null>(null);
   const [rutaToDelete, setRutaToDelete] = useState<Ruta | null>(null);
+  const [mfaSecret, setMfaSecret] = useState<string | null>(null);
+  const [mfaLoading, setMfaLoading] = useState(false);
   const [formData, setFormData] = useState({
     distanciaTotal: 0,
     tiempoPromedio: 0,
@@ -84,7 +89,11 @@ const Dashboard = () => {
     r.estadoRuta === 'En Tránsito' ||
     r.estadoRuta === 'En Proceso'
   ).length;
-  const rutasCompletadas = rutas.filter(r => r.estadoRuta === 'Completada').length;
+  // Rutas completadas: cuenta +1 por cada ruta con estado "Completada"
+  const rutasCompletadas = rutas.filter(r => 
+    r.estadoRuta === 'Completada' || 
+    r.estadoRuta === 'COMPLETADA'
+  ).length;
 
   // Buscar ruta para actualizar y redirigir a editar
   const handleSearchUpdate = () => {
@@ -157,6 +166,43 @@ const Dashboard = () => {
     }
   };
 
+  // Generar secreto MFA
+  const handleGenerateMfa = async () => {
+    if (!usuario?.cedula) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No se pudo obtener la información del usuario',
+      });
+      return;
+    }
+
+    // Abrir modal inmediatamente para mostrar loader
+    setOpenMfaModal(true);
+    setMfaLoading(true);
+    setMfaSecret(null);
+
+    try {
+      const response = await mfaService.generateSecret(usuario.cedula);
+      setMfaSecret(response.secret);
+      toast({
+        title: "Éxito",
+        description: "MFA configurado exitosamente. Escanea el código QR con tu app de autenticación.",
+      });
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Error al generar secreto MFA';
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: typeof errorMessage === 'string' ? errorMessage : 'Error al configurar MFA',
+      });
+      // Cerrar modal si hay error
+      setOpenMfaModal(false);
+    } finally {
+      setMfaLoading(false);
+    }
+  };
+
   const menuItems = [
     {
       icon: Route,
@@ -211,6 +257,15 @@ const Dashboard = () => {
       color: 'bg-orange-500',
       visible: !esConductor(), // Todos excepto Conductor
       action: null,
+    },
+    {
+      icon: Shield,
+      title: 'Activar MFA',
+      description: 'Configura autenticación de dos factores',
+      link: null,
+      color: 'bg-indigo-500',
+      visible: true, // Todos los roles pueden activar MFA
+      action: handleGenerateMfa,
     },
   ];
 
@@ -434,6 +489,70 @@ const Dashboard = () => {
                 Eliminar Definitivamente
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal MFA */}
+      <Dialog open={openMfaModal} onOpenChange={setOpenMfaModal}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="text-primary text-2xl flex items-center gap-2">
+              <Shield className="h-6 w-6" />
+              Configurar Autenticación de Dos Factores (MFA)
+            </DialogTitle>
+            <DialogDescription>
+              Escanea este código QR con tu app de autenticación (Google Authenticator, Authy, etc.)
+            </DialogDescription>
+          </DialogHeader>
+
+          {mfaLoading ? (
+            <div className="flex flex-col items-center justify-center p-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+              <p className="text-muted-foreground">Generando código QR...</p>
+            </div>
+          ) : mfaSecret ? (
+            <div className="space-y-4 py-4">
+              <div className="flex flex-col items-center justify-center p-6 bg-secondary/30 rounded-lg">
+                <QRCodeSVG 
+                  value={`otpauth://totp/CourierSync:${usuario?.cedula || 'usuario'}?secret=${mfaSecret}&issuer=CourierSync`}
+                  size={256}
+                  level="H"
+                  includeMargin={true}
+                />
+              </div>
+              
+              <div className="bg-primary/10 border-l-4 border-primary p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-2">
+                  <strong>Instrucciones:</strong>
+                </p>
+                <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+                  <li>Abre tu app de autenticación (Google Authenticator, Authy, Microsoft Authenticator, etc.)</li>
+                  <li>Selecciona "Agregar cuenta" o el botón "+"</li>
+                  <li>Elige "Escanear código QR"</li>
+                  <li>Apunta la cámara hacia el código QR mostrado arriba</li>
+                  <li>¡Listo! Tu cuenta MFA está configurada</li>
+                </ol>
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500 p-4 rounded-lg">
+                <p className="text-sm text-blue-900 dark:text-blue-100">
+                  💡 <strong>Nota:</strong> A partir de ahora, necesitarás ingresar un código de 6 dígitos de tu app de autenticación cada vez que inicies sesión.
+                </p>
+              </div>
+            </div>
+          ) : null}
+
+          <DialogFooter>
+            <Button 
+              onClick={() => {
+                setOpenMfaModal(false);
+                setMfaSecret(null);
+              }}
+              className="bg-primary hover:bg-primary/90"
+            >
+              Entendido
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

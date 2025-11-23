@@ -5,8 +5,9 @@ import {
   MfaVerifyRequest,
   MfaVerifyResponse,
 } from '@/types/backend';
+import apiClient from './api';
 
-// Cliente axios sin autenticación para MFA (no requiere token)
+// Cliente axios sin autenticación para MFA verify (no requiere token durante login)
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/CourierSync/api';
 const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT || '10000', 10);
 
@@ -24,12 +25,14 @@ const mfaClient: AxiosInstance = axios.create({
 export const mfaService = {
   /**
    * Genera un secreto MFA para un usuario y lo habilita
+   * Requiere autenticación (usuario debe estar logueado)
    * @param cedula - Cédula del usuario
    * @returns Secreto TOTP y mensaje de confirmación
    */
   async generateSecret(cedula: string): Promise<MfaGenerateResponse> {
     const request: MfaGenerateRequest = { cedula };
-    const response = await mfaClient.post<MfaGenerateResponse>('/api/mfa/generate-secret', request);
+    // Usar apiClient que incluye el token de autenticación automáticamente
+    const response = await apiClient.post<MfaGenerateResponse>('/api/mfa/generate-secret', request);
     return response.data;
   },
 

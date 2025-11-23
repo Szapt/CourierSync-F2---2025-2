@@ -90,6 +90,9 @@ public class MfaController {
                 "currentTime", currentTime,
                 "message", "Este es el código que DEBERÍA mostrar Authy ahora mismo"
             ));
+        } catch (dev.samstevens.totp.exceptions.CodeGenerationException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .body("Error al generar código: " + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                  .body("Error: " + e.getMessage());

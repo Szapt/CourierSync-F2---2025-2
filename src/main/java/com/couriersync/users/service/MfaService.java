@@ -4,6 +4,7 @@ import dev.samstevens.totp.code.CodeVerifier;
 import dev.samstevens.totp.code.DefaultCodeVerifier;
 import dev.samstevens.totp.code.DefaultCodeGenerator;
 import dev.samstevens.totp.code.HashingAlgorithm;
+import dev.samstevens.totp.exceptions.CodeGenerationException;
 import dev.samstevens.totp.secret.DefaultSecretGenerator;
 import dev.samstevens.totp.secret.SecretGenerator;
 import dev.samstevens.totp.time.SystemTimeProvider;
@@ -85,14 +86,16 @@ public class MfaService {
                 System.out.println("   El código que debería ser ahora es: " + currentCode);
             }
             
-            // También intentar con el verifier estándar por si acaso
+            // Usar el verifier estándar que tiene una ventana de tiempo más amplia
+            // El verifier maneja correctamente la sincronización de tiempo
             boolean verifierResult = verifier.isValidCode(secret, code);
             System.out.println("Resultado del verifier estándar: " + verifierResult);
             
-            // Usar el resultado de la comparación directa (más confiable)
-            System.out.println("Resultado verificación final: " + matches);
+            // El verifier es más confiable porque maneja correctamente la ventana de tiempo
+            // Usar el resultado del verifier en lugar de la comparación manual
+            System.out.println("Resultado verificación final: " + verifierResult);
             System.out.println("============================");
-            return matches;
+            return verifierResult;
         } catch (Exception e) {
             System.err.println("ERROR en verificación: " + e.getMessage());
             e.printStackTrace();
@@ -109,7 +112,7 @@ public class MfaService {
      * Genera un código de prueba con el secret actual
      * Útil para debugging - muestra qué código debería generar Authy
      */
-    public String generateTestCode(String secret) {
+    public String generateTestCode(String secret) throws CodeGenerationException {
         long currentTime = timeProvider.getTime();
         return codeGenerator.generate(secret, currentTime);
     }

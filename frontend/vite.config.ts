@@ -7,7 +7,7 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 8080,
+    port: 8081,
     // Proxy opcional para desarrollo (alternativa a CORS)
     // Descomenta si prefieres usar proxy en lugar de CORS en el backend
     // proxy: {

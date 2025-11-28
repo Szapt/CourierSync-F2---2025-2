@@ -122,6 +122,7 @@ export function mapRutaToBackendRequest(
   ]);
 
   // Extraer ID numérico si existe (formato RUTA_001 -> 1)
+  // Solo incluir idRuta si existe y es válido (para actualizaciones)
   let idRuta: number | undefined;
   if (ruta.idRuta) {
     const match = ruta.idRuta.match(/RUTA_(\d+)/);
@@ -130,8 +131,8 @@ export function mapRutaToBackendRequest(
     }
   }
 
-  return {
-    idRuta,
+  // Construir el objeto, solo incluyendo idRuta si tiene valor (para actualizaciones)
+  const request: any = {
     vehiculoAsociado: ruta.vehiculoAsignado?.placaVehiculo || null,
     conductorAsignado: ruta.conductorAsignado?.cedula || null,
     idEstado: ruta.estadoRuta ? estadoMap.get(ruta.estadoRuta) || 1 : 1,
@@ -140,6 +141,13 @@ export function mapRutaToBackendRequest(
     idTrafico: ruta.traficoPromedio ? traficoMapDefault.get(ruta.traficoPromedio) || 2 : 2,
     prioridad: ruta.prioridad ? prioridadMapDefault.get(ruta.prioridad) || 2 : 2,
   };
+
+  // Solo incluir idRuta si tiene un valor válido (para actualizaciones)
+  if (idRuta !== undefined && idRuta !== null) {
+    request.idRuta = idRuta;
+  }
+
+  return request;
 }
 
 /**

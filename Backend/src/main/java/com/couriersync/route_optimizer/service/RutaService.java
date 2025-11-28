@@ -27,7 +27,17 @@ public class RutaService {
     private TipoTraficoRepository tipoTraficoRepository;
     // Crear nueva ruta
     public Ruta crearRuta(Ruta ruta) {
-        if (ruta.getIdRuta() != null && rutaRepository.existsById(ruta.getIdRuta())) {
+        // Si no se proporciona ID, generar uno automáticamente
+        if (ruta.getIdRuta() == null) {
+            // Obtener el máximo ID existente y sumar 1
+            List<Ruta> todasLasRutas = rutaRepository.findAll();
+            Integer maxId = todasLasRutas.stream()
+                .map(Ruta::getIdRuta)
+                .filter(id -> id != null)
+                .max(Integer::compareTo)
+                .orElse(0);
+            ruta.setIdRuta(maxId + 1);
+        } else if (rutaRepository.existsById(ruta.getIdRuta())) {
             throw new DataIntegrityViolationException("El ID de la ruta ya existe.");
         }
 

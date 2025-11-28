@@ -36,14 +36,13 @@ public class SecurityConfig {
                     "/login",
                     "/signup",
                     "/register",
-                    "/logout",
                     "/api/mfa/**",
-                    "/routes/**",
+                    "/routes/estados",
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html"
                 ).permitAll()
-                .requestMatchers("/users/**").authenticated() 
+                .requestMatchers("/logout", "/routes/**", "/users/**").authenticated() 
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); 

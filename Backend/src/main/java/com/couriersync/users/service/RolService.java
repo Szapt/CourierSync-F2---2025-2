@@ -37,12 +37,27 @@ public class RolService {
             return "ROLE_USER";
         }
         
-        String rolMayusculas = nombreRol.toUpperCase().trim();
-        if (!rolMayusculas.startsWith("ROLE_")) {
-            rolMayusculas = "ROLE_" + rolMayusculas;
+        // Normalizar: convertir a mayúsculas, eliminar espacios y caracteres especiales
+        String rolNormalizado = nombreRol.toUpperCase().trim();
+        // Eliminar espacios, guiones y caracteres especiales
+        rolNormalizado = rolNormalizado.replaceAll("[\\s\\-_]", "");
+        
+        // Mapeo de nombres comunes a nombres normalizados
+        if (rolNormalizado.contains("ADMIN")) {
+            rolNormalizado = "ADMIN";
+        } else if (rolNormalizado.contains("GESTOR") && rolNormalizado.contains("RUTA")) {
+            rolNormalizado = "GESTORRUTA";
+        } else if (rolNormalizado.contains("CONDUCTOR")) {
+            rolNormalizado = "CONDUCTOR";
+        } else if (rolNormalizado.contains("AUDITOR")) {
+            rolNormalizado = "AUDITOR";
         }
         
-        return rolMayusculas;
+        if (!rolNormalizado.startsWith("ROLE_")) {
+            rolNormalizado = "ROLE_" + rolNormalizado;
+        }
+        
+        return rolNormalizado;
     }
 
     public String obtenerNombreRolPorId(Integer idRol) {

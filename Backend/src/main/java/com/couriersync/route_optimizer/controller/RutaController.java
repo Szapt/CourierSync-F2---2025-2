@@ -30,7 +30,7 @@ public class RutaController {
     private RutaService rutaService;
 
     // Crear una nueva ruta
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GESTORRUTA')")
     @PostMapping("/create")
     public ResponseEntity<?> crearRuta(@RequestBody Ruta ruta) {
         try {

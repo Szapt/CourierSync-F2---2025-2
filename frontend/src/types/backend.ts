@@ -117,7 +117,7 @@ export interface CambiarRolRequest {
 export interface RutaRequest {
   idRuta?: number; // Opcional, auto-generado si no se proporciona
   vehiculoAsociado?: string; // máx 25 caracteres
-  conductorAsociado?: string; // máx 25 caracteres
+  conductorAsignado?: string; // máx 25 caracteres
   idEstado: number;
   distanciaTotal: number;
   tiempoPromedio: number;

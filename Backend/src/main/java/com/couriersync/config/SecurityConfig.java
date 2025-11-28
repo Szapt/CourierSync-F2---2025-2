@@ -1,5 +1,7 @@
 package com.couriersync.config;
 
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +17,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.couriersync.users.security.JwtAuthenticationFilter;
-
-import java.util.Arrays;
 
 @Configuration
 @EnableMethodSecurity
@@ -56,7 +56,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         
         // Permitir el origen de tu frontend
-        configuration.setAllowedOrigins(Arrays.asList("https://couriersync-f2-2025-2-1.onrender.com"));
+        configuration.setAllowedOrigins(Arrays.asList("https://couriersync-f2-2025-2-1.onrender.com", "http://localhost:8081"));
         
         // Métodos HTTP permitidos
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));

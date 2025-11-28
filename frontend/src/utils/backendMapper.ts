@@ -133,7 +133,7 @@ export function mapRutaToBackendRequest(
   return {
     idRuta,
     vehiculoAsociado: ruta.vehiculoAsignado?.placaVehiculo || null,
-    conductorAsociado: ruta.conductorAsignado?.cedula || null,
+    conductorAsignado: ruta.conductorAsignado?.cedula || null,
     idEstado: ruta.estadoRuta ? estadoMap.get(ruta.estadoRuta) || 1 : 1,
     distanciaTotal: ruta.distanciaTotal || 0,
     tiempoPromedio: ruta.tiempoPromedio || 0,
